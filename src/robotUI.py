@@ -24,7 +24,7 @@ class RobotUI:
         # Set application title and icon
         master.title("Inverse Kinematik Rechner by Benedikt Fassian")
         master.resizable(width=False, height=False)
-        icon = tk.PhotoImage(file = "icon.png")
+        icon = tk.PhotoImage(file = "./src/icon.png")
         master.iconphoto(False, icon)
 
         # Fonts
