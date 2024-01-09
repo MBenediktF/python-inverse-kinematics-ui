@@ -5,11 +5,6 @@
 # Author: Benedikt Fassian
 # Date: 06.01.2024
 ###############################################
-# RoboticsToolbox Installation:
-# pip install roboticstoolbox-python
-# App Icon reference (Created by flaticon):
-# https://www.flaticon.com/free-icons/robot
-###############################################
 
 import tkinter as tk
 from tkinter import ttk
