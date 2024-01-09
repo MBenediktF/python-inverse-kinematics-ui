@@ -5,7 +5,7 @@
 # Date: 06.01.2024
 ###############################################
 
-from visual import RobotUI
+from src.robotUI import RobotUI
 import tkinter as tk
 
 if __name__ == "__main__":

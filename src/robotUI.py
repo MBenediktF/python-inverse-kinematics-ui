@@ -14,7 +14,7 @@ from scipy.spatial.transform import Rotation
 import numpy as np
 import csv
 from tkinter.messagebox import showerror, showinfo
-from helpers import parseInputString
+from src.helpers import parseInputString
 
 class RobotUI:
     def __init__(self, master):
