@@ -1,0 +1,7 @@
+Gelenk,θ in rad,d in m,a in m,alpha in m,Min,Max,Gelenktyp
+1,0,0,0.2,-pi/2,-pi,+pi,Rotation
+2,0,0,1,0,-pi,+pi,Rotation
+3,0,0,0,pi/2,-pi,+pi,Rotation
+4,0,1,0,pi/2,-pi,+pi,Rotation
+5,0,0,0,-pi/2,-pi,+pi,Rotation
+6,0,0.2,0,0,-pi,+pi,Rotation
