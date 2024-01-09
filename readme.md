@@ -7,4 +7,4 @@
 python -u main.py
 
 ## App icon reference
-[Flaticon](https://www.flaticon.com/free-icons/robot)
+[Robot icons created by Flat Icons - Flaticon](https://www.flaticon.com/free-icons/robot)
