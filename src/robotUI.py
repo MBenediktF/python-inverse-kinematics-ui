@@ -661,15 +661,6 @@ class RobotUI:
                     self.result[i] = str(round(result.q[i], 4))
             # Output result
             self.createResultString(self.format_target.get())
-        
-    def addResult(self):
-        return
-    
-    def resetResult(self):
-        self.result_positions.clear()
-        self.result = ["-", "-", "-", "-", "-", "-"]
-        self.createResultString(self.format_target.get())
-        return
 
     # Start UI
     def run(self):
