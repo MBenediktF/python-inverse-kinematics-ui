@@ -15,6 +15,7 @@ import numpy as np
 import csv
 from tkinter.messagebox import showerror, showinfo
 from src.helpers import parseInputString
+import traceback
 
 class RobotUI:
     def __init__(self, master):
@@ -42,6 +43,8 @@ class RobotUI:
         self.preset_labels =    ["-", "Puma560", "UR3", "UR5", "UR10"]
         self.presets_dh = [False, rtb.models.DH.Puma560(), rtb.models.DH.UR3(), rtb.models.DH.UR5(), rtb.models.DH.UR10()]
         self.presets_urdf = [False, rtb.models.URDF.Puma560(), rtb.models.URDF.UR3(), rtb.models.URDF.UR5(), rtb.models.URDF.UR10()]
+
+        self.result_positions = []
 
 
         ###############################################
@@ -230,21 +233,21 @@ class RobotUI:
 
         # Solver
         label_solver = ttk.Label(master, text="Solver")
-        label_solver.grid(row=14, column=6, columnspan=2, padx=0, pady=2, sticky="s")
+        label_solver.grid(row=14, column=6, columnspan=2, padx=0, pady=0, sticky="s")
         self.solver = ttk.Combobox(master, width=10, values=["IK_LM", "IK_GN", "IK_NR"], state="readonly")
         self.solver.set("IK_LM")
-        self.solver.grid(row=15, column=6, columnspan=2, padx=5, pady=5, sticky="s")
+        self.solver.grid(row=15, column=6, columnspan=2, padx=5, pady=0, sticky="s")
 
         # Limits
         label_limits = ttk.Label(master, text="Limits")
-        label_limits.grid(row=17, column=6, columnspan=2, padx=0, pady=2, sticky="s")
+        label_limits.grid(row=17, column=6, columnspan=2, padx=0, pady=0, sticky="s")
         self.limits = ttk.Combobox(master, width=10, values=["Aktiv", "Unbegrenzt"], state="readonly")
         self.limits.set("Aktiv")
-        self.limits.grid(row=18, column=6, columnspan=2, padx=5, pady=5, sticky="s")
+        self.limits.grid(row=18, column=6, columnspan=2, padx=5, pady=0, sticky="s")
 
         # Calculate button
         label_calculate = ttk.Label(master, text="Berechnen")
-        label_calculate.grid(row=20, column=6, columnspan=2, padx=0, pady=2, sticky="s")
+        label_calculate.grid(row=20, column=6, columnspan=2, padx=0, pady=0, sticky="s")
         button_calculate = ttk.Button(master, width=8, text="Start", command=self.calculate)
         button_calculate.grid(row=21, column=6, columnspan=2, sticky="s")
 
@@ -257,9 +260,9 @@ class RobotUI:
         self.label_result.grid(row=26, column=0, columnspan=8, padx=0, pady=5, sticky="s")
 
         # Plot and visualize result buttons
-        button_plot_result = ttk.Button(master, width=16, text="Ergebnis Plotten", command=self.plotResult)
+        button_plot_result = ttk.Button(master, width=20, text="Ergebnis Plotten", command=self.plotResult)
         button_plot_result.grid(row=28, column=0, columnspan=4, padx=20, pady=12, sticky="e")
-        button_visualize_result = ttk.Button(master, width=16, text="Ergebnis Visualisieren", command=self.visualizeResult)
+        button_visualize_result = ttk.Button(master, width=20, text="Ergebnis Visualisieren", command=self.visualizeResult)
         button_visualize_result.grid(row=28, column=4, columnspan=4, padx=20, pady=12, sticky="w")
 
         # Distance element (layout)
@@ -305,6 +308,8 @@ class RobotUI:
     def resetPreset(self, event=False): 
         self.entry_load.set("-")
         self.result = ["-", "-", "-", "-", "-", "-"]
+        self.result_positions.clear()
+        self.createResultString(self.format_target.get())
 
     # Load preset
     def loadModelFromPreset(self, event=False): self.loadModel(False)
@@ -317,6 +322,9 @@ class RobotUI:
         # Reset Joints 2-6 (DH-Table)
         self.entry_dh_params[1][6].set("Deaktiviert")
         self.setRow(1, "disabled")
+        self.result_positions.clear()
+        self.result = ["-", "-", "-", "-", "-", "-"]
+        self.createResultString(self.format_target.get())
 
         if fromFile:
             # Load Robot from file
@@ -467,8 +475,17 @@ class RobotUI:
                 else:
                     # Get robot data from preset
                     robot = self.presets_dh[self.preset_labels.index(self.entry_load.get())]
-                robot.plot(q=q)
-        except:
+                if result:
+                    # Plot trajectory
+                    q_start = self.getStartPosition()
+                    if not q_start: return
+                    traj = rtb.jtraj(q_start, q, 50)
+                    traj.q.shape
+                    robot.plot(traj.q)
+                    #rtb.xplot(traj.q)
+                else:
+                    robot.plot(q=q)
+        except Exception as e:
             showerror(message="Darstellung nicht möglich. Eingaben und Ergebnis prüfen!")
         return
 
@@ -569,10 +586,8 @@ class RobotUI:
                 return False
         # Create and return robot object
         return rtb.DHRobot(robot_config, name="Robot")
-
-    # Calculate the result from the given input
-    def calculate(self):    
-        # Get start position input
+    
+    def getStartPosition(self):
         if(self.format_start.get()=="Gelenkposition"):
             q_start = []
             for i in range(6):
@@ -583,7 +598,14 @@ class RobotUI:
         else:
             # Right now only joint position input is supported
             showerror(message="Funktion icht verfügbar. Bisher können nur Gelenkpositionen als Start genutzt werden.")
-            return
+            return False
+        return q_start
+
+    # Calculate the result from the given input
+    def calculate(self):    
+        # Get start position input
+        q_start = self.getStartPosition()
+        if not q_start: return
         
         # Get target position input
         target_transformation = np.empty((4, 4))
@@ -639,6 +661,15 @@ class RobotUI:
                     self.result[i] = str(round(result.q[i], 4))
             # Output result
             self.createResultString(self.format_target.get())
+        
+    def addResult(self):
+        return
+    
+    def resetResult(self):
+        self.result_positions.clear()
+        self.result = ["-", "-", "-", "-", "-", "-"]
+        self.createResultString(self.format_target.get())
+        return
 
     # Start UI
     def run(self):
