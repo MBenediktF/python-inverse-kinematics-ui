@@ -477,7 +477,7 @@ class RobotUI:
                     robot = self.presets_dh[self.preset_labels.index(self.entry_load.get())]
                 if result:
                     # Plot trajectory
-                    q_start = self.getStartPosition()
+                    q_start = self.getStartPosition(True)
                     if not q_start: return
                     traj = rtb.jtraj(q_start, q, 50)
                     traj.q.shape
@@ -587,24 +587,32 @@ class RobotUI:
         # Create and return robot object
         return rtb.DHRobot(robot_config, name="Robot")
     
-    def getStartPosition(self):
-        if(self.format_start.get()=="Gelenkposition"):
+    def getStartPosition(self, fromStartPos=False):
+        if fromStartPos:
+            if(self.format_start.get()=="Gelenkposition"):
+                q_start = []
+                for i in range(6):
+                    if self.entry_dh_params[i][6].get() in ["Rotation", "Translation"]:
+                        q_start.append(parseInputString(self.start_position[i][0].get()))
+                    else:
+                        break
+            else:
+                # Right now only joint position input is supported
+                showerror(message="Funktion icht verfügbar. Bisher können nur Gelenkpositionen als Start genutzt werden.")
+                return False
+        else:
             q_start = []
             for i in range(6):
                 if self.entry_dh_params[i][6].get() in ["Rotation", "Translation"]:
-                    q_start.append(parseInputString(self.start_position[i][0].get()))
+                    q_start.append(parseInputString(self.start_position[i].get()))
                 else:
                     break
-        else:
-            # Right now only joint position input is supported
-            showerror(message="Funktion icht verfügbar. Bisher können nur Gelenkpositionen als Start genutzt werden.")
-            return False
         return q_start
 
     # Calculate the result from the given input
     def calculate(self):    
         # Get start position input
-        q_start = self.getStartPosition()
+        q_start = self.getStartPosition(True)
         if not q_start: return
         
         # Get target position input
